@@ -43,3 +43,25 @@ stages:
       inputs:
         testResultsFormat: 'JUnit'
         testResultsFiles: '$(Build.SourcesDirectory)/target/surefire-reports/TEST-*.xml'
+
+- stage: StaticAnalysis
+  jobs:
+  - job: SonarQube
+    steps:
+    - task: SonarQubePrepare@4
+      inputs:
+        SonarQube: 'TestSonarqubeConnection'
+        scannerMode: 'CLI'
+        cliProjectKey: 'myapp'
+        cliProjectName: 'My App'
+        cliSources: '$(Build.SourcesDirectory)'
+    
+    - task: Maven@3
+      inputs:
+        mavenPomFile: 'pom.xml'
+        options: '-B'
+        goals: 'clean verify sonar:sonar'
+
+    - task: SonarQubePublish@4
+      inputs:
+        pollingTimeoutSec: '300'
